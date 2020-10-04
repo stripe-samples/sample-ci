@@ -1,0 +1,33 @@
+services:
+  runner:
+    build:
+      context: .
+    command: ['tail', '-f', '/dev/null']
+    environment:
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - SERVER_URL=http://web:4242
+      - BUNDLE_JOBS=5
+
+  stripe:
+    image: stripe/stripe-cli
+    entrypoint: ['/bin/ash']
+    command: ['-c', '/bin/stripe --api-key=$STRIPE_SECRET_KEY listen --forward-to http://web:4242/stripe-webhook']
+    environment:
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+
+  web:
+    build:
+      context: .
+      dockerfile: ${SERVER_LANG}/Dockerfile
+      args:
+        sample: ${SAMPLE}
+    ports: ['4242:4242']
+    environment:
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - BASIC=${BASIC}
+      - PREMIUM=${PREMIUM}
+      - STATIC_DIR=${STATIC_DIR}
+      - BUNDLE_JOBS=5
