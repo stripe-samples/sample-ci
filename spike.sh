@@ -53,3 +53,5 @@ do
 
   ./ci/run_tests "$TEST_FILES"
 done
+
+docker-compose stop
