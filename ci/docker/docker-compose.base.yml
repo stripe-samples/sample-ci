@@ -12,8 +12,7 @@ services:
     image: stripe/stripe-cli
     entrypoint: ['/bin/ash']
     command: ['-c', '/bin/stripe --api-key=$STRIPE_SECRET_KEY listen --forward-to http://web:4242/stripe-webhook']
-    environment:
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+    env_file: .env
 
   web:
     build:
