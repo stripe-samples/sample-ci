@@ -6,7 +6,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Setup test runner
+
+      - name: Install jq
+        run: |
+          sudo curl -o /usr/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+          sudo chmod +x /usr/bin/jq
+
+      - name: Run tests
         run: |
           ./spike.sh
         env:

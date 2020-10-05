@@ -1,13 +1,12 @@
 services:
   runner:
     build:
-      context: .
+      context: ../..
+      dockerfile: ci/docker/test/Dockerfile
     command: ['tail', '-f', '/dev/null']
+    env_file: .env
     environment:
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - SERVER_URL=http://web:4242
-      - BUNDLE_JOBS=5
 
   stripe:
     image: stripe/stripe-cli
@@ -18,16 +17,11 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: ${SERVER_LANG}/Dockerfile
+      context: ../..
+      dockerfile: ci/docker/${SERVER_LANG}/Dockerfile
       args:
         sample: ${SAMPLE}
     ports: ['4242:4242']
+    env_file: .env
     environment:
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - BASIC=${BASIC}
-      - PREMIUM=${PREMIUM}
       - STATIC_DIR=${STATIC_DIR}
-      - BUNDLE_JOBS=5
