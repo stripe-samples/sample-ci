@@ -5,7 +5,8 @@ docker-compose build web
 export STRIPE_WEBHOOK_SECRET=$(docker-compose run -T --rm stripe -c '/bin/stripe --api-key $STRIPE_SECRET_KEY listen --print-secret')
 docker-compose up -d
 
-docker-compose exec -T runner bash -c 'curl -I --retry 12 --retry-delay 3 --retry-connrefused $SERVER_URL'
-docker-compose exec -T runner bundle exec rspec "$@"
+set -x
+time docker-compose exec -T runner bash -c 'curl -I --retry 12 --retry-delay 3 --retry-connrefused $SERVER_URL'
+time docker-compose exec -T runner bundle exec rspec "$@"
 
 docker-compose stop web

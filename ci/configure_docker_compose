@@ -1,0 +1,10 @@
+#!/bin/bash -xe
+
+export SAMPLE=${1}
+export SERVER_LANG=${2}
+export STATIC_DIR=${3}
+export SERVER_JAR_FILE=${4}
+
+variables='${SAMPLE}${SERVER_LANG}${STATIC_DIR}${SERVER_JAR_FILE}'
+cat $(dirname "$0")/docker/docker-compose.base.yml | envsubst "$variables" > docker-compose.yml
+cat $(dirname "$0")/docker/${SERVER_LANG}/docker-compose.web.yml | envsubst "$variables" > docker-compose.override.yml

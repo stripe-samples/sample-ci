@@ -1,8 +1,8 @@
 services:
   web:
     volumes:
-      - ../../${SAMPLE}:/work
+      - ./${SAMPLE}:/work
 
   runner:
     volumes:
-      - ../..:/work
+      - .:/work
