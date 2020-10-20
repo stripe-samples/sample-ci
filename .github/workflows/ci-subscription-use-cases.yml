@@ -1,0 +1,77 @@
+name: CI for stripe-samples/subscription-use-cases
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # repository: 'stripe-samples/subscription-use-cases'
+          repository: 'hibariya/subscription-use-cases'
+          ref: 'ci'
+
+      - uses: actions/checkout@v2
+        with:
+          repository: 'stripe-samples/sample-ci'
+          path: 'sample-ci'
+          ref: 'ci'
+          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
+
+      - name: Install gettext for envsubst
+        run: |
+          sudo apt install gettext-base
+
+      - name: Install jq
+        run: |
+          sudo curl -o /usr/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+          sudo chmod +x /usr/bin/jq
+
+      - name: Run tests
+        run: |
+          cp -pr sample-ci/ci .
+          cp -p ci/docker/docker-compose.base.yml docker-compose.yml
+
+          export SAMPLE=NA; export SERVER_LANG=NA; export STATIC_DIR=NA;
+          docker-compose build runner
+
+          server_langs_in_sample() {
+            jq -r ".integrations[] | select(.name==\"${1}\") | .servers | .[]"
+          }
+
+          sample=fixed-price-subscriptions
+          for lang in $(cat .cli.json | server_langs_in_sample "$sample")
+          do
+            ci/configure_docker_compose "$sample" "$lang" ../../client/vanillajs \
+                                        target/subscriptions-with-fixed-price-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+
+            echo > ${sample}/server/${lang}/.env
+            ci/run_tests spec/fixed_price_server_spec.rb
+          done
+
+          sample=per-seat-subscriptions
+          for lang in $(cat .cli.json | server_langs_in_sample "$sample")
+          do
+            ci/configure_docker_compose "$sample" "$lang" ../../client \
+                                        target/subscriptions-with-per-seat-pricing-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+
+            echo > ${sample}/server/${lang}/.env
+            ci/run_tests spec/per_seat_server_dummy_spec.rb # spec/per_seat_server_spec.rb will fail on python, see fail_per_seat_python.sh
+          done
+
+          sample=usage-based-subscriptions
+          rm -rf ${sample}/server/dotnet/ReportUsage # causes "Program.cs(14,28): error CS0017: Program has more than one entry point defined."
+          for lang in $(cat .cli.json | server_langs_in_sample "$sample")
+          do
+            ci/configure_docker_compose "$sample" "$lang" ../../client \
+                                        target/subscriptions-with-metered-usage-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+
+            echo > ${sample}/server/${lang}/.env
+            ci/run_tests spec/usage_based_server_spec.rb
+          done
+        env:
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.TEST_STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.TEST_STRIPE_SECRET_KEY }}
+          PREMIUM: price_1HXyXwCWW2eVYDoPnnTQ02VO
+          BASIC: price_1HXyVBCWW2eVYDoPtXcEdXfw
+
