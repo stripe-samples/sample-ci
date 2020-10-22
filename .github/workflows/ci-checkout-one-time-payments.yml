@@ -1,0 +1,55 @@
+name: CI for stripe-samples/checkout-one-time-payments
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # repository: 'stripe-samples/checkout-one-time-payments'
+          repository: 'hibariya/checkout-one-time-payments'
+          ref: 'ci'
+
+      - uses: actions/checkout@v2
+        with:
+          repository: 'stripe-samples/sample-ci'
+          path: 'sample-ci'
+          ref: 'ci'
+          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
+
+      - name: Install gettext for envsubst
+        run: |
+          sudo apt install gettext-base
+
+      - name: Install jq
+        run: |
+          sudo curl -o /usr/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+          sudo chmod +x /usr/bin/jq
+
+      - name: Run tests
+        run: |
+          cp -pr sample-ci/ci .
+          cp -p ci/docker/docker-compose.base.yml docker-compose.yml
+
+          export SAMPLE=NA; export SERVER_LANG=NA; export STATIC_DIR=NA;
+          docker-compose build runner
+
+          server_langs_in_sample() {
+            jq -r ".integrations[] | select(.name==\"${1}\") | .servers | .[]"
+          }
+
+          for lang in $(cat .cli.json | server_langs_in_sample main)
+          do
+            [ "$lang" = "php" ] && continue
+
+            echo "PRICE=price_1Hf3k8CWW2eVYDoPDT6y9NLt" > ./server/${lang}/.env
+            echo "DOMAIN=http://web:4242" >> ./server/${lang}/.env
+            echo 'PAYMENT_METHODS="card"' >> ./server/${lang}/.env
+
+            ci/configure_docker_compose . "$lang" ../../client/html \
+                                        target/single-product-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            ci/run_tests spec/client_and_server_spec.rb
+          done
+
+          docker-compose stop
