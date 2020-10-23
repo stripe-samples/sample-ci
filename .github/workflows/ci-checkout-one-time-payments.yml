@@ -53,3 +53,8 @@ jobs:
           done
 
           docker-compose stop
+        env:
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.TEST_STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.TEST_STRIPE_SECRET_KEY }}
+          PREMIUM: price_1HXyXwCWW2eVYDoPnnTQ02VO
+          BASIC: price_1HXyVBCWW2eVYDoPtXcEdXfw
