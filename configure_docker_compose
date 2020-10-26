@@ -1,0 +1,15 @@
+#!/bin/bash -xe
+
+source $(dirname "$0")/functions.sh
+
+export SAMPLE=${1}
+export SERVER_LANG=${2}
+export STATIC_DIR=${3}
+export SERVER_JAR_FILE=${4}
+
+install_docker_compose_settings "$SAMPLE" "$SERVER_LANG" "$STATIC_DIR" "$SERVER_JAR_FILE"
+
+docker-compose stop web || true
+time docker-compose build web
+
+docker-compose up -d && wait_web_server

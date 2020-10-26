@@ -1,4 +1,4 @@
-name: CI for stripe-samples/checkout-one-time-payments
+name: CI for stripe-samples/checkout-single-subscription
 on: [push]
 
 jobs:
@@ -7,8 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          # repository: 'stripe-samples/checkout-one-time-payments'
-          repository: 'hibariya/checkout-one-time-payments'
+          # repository: 'stripe-samples/checkout-single-subscription'
+          repository: 'hibariya/checkout-single-subscription'
           ref: 'ci'
 
       - uses: actions/checkout@v2
@@ -37,8 +37,8 @@ jobs:
           export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)
           cat <<EOF >> .env
           DOMAIN=http://web:4242
-          PRICE=${PRICE}
-          PAYMENT_METHODS="card"
+          BASIC_PRICE_ID=${BASIC}
+          PRO_PRICE_ID=${PREMIUM}
           EOF
 
           for lang in $(cat .cli.json | server_langs_for_integration main)
@@ -46,12 +46,13 @@ jobs:
             [ "$lang" = "php" ] && continue
 
             echo > server/${lang}/.env
-            sample-ci/configure_docker_compose . "$lang" ../../client/html \
-                                               target/single-product-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            sample-ci/configure_docker_compose . "$lang" ../../client \
+                                               target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
-            docker-compose exec -T runner bundle exec rspec spec/client_and_server_spec.rb
+            docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
           done
         env:
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.TEST_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.TEST_STRIPE_SECRET_KEY }}
-          PRICE: price_1Hf3k8CWW2eVYDoPDT6y9NLt
+          PREMIUM: price_1HXyXwCWW2eVYDoPnnTQ02VO
+          BASIC: price_1HXyVBCWW2eVYDoPtXcEdXfw

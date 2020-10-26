@@ -1,49 +1,33 @@
 #!/bin/bash -xe
 
-# Clone a sample repository and copy sample-ci files into it
-git clone https://github.com/hibariya/subscription-use-cases.git
-cd subscription-use-cases
+git clone https://github.com/hibariya/checkout-single-subscription.git
+cd checkout-single-subscription
 git checkout ci
 
-cp -pr ../ci .
-cp -p ci/docker/docker-compose.base.yml docker-compose.yml
+# git clone https://github.com/stripe-samples/sample-ci.git
+mkdir sample-ci; cp -pr ../{configure_docker_compose,docker,functions.sh} sample-ci/
 
-export SAMPLE=NA; export SERVER_LANG=NA; export STATIC_DIR=NA;
-docker-compose build runner # runner runs RSpec tests for each sample
+source sample-ci/functions.sh
 
-server_langs_in_sample() {
-  jq -r ".integrations[] | select(.name==\"${1}\") | .servers | .[]"
-}
+cp -p sample-ci/docker/docker-compose.base.yml docker-compose.yml
+touch .env;
+export SAMPLE=NA SERVER_LANG=NA STATIC_DIR=NA
+export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)
+cat <<EOF >> .env
+DOMAIN=http://web:4242
+BASIC_PRICE_ID=${BASIC}
+PRO_PRICE_ID=${PREMIUM}
+EOF
 
-sample=fixed-price-subscriptions
-for lang in $(cat .cli.json | server_langs_in_sample "$sample")
+for lang in $(cat .cli.json | server_langs_for_integration main)
 do
-  ci/configure_docker_compose "$sample" "$lang" ../../client/vanillajs \
-                              target/subscriptions-with-fixed-price-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+  [ "$lang" = "php" ] && continue
 
-  echo > ${sample}/server/${lang}/.env # Empty the file since the process on the container already has those environment variables
-  ci/run_tests spec/fixed_price_server_spec.rb # Build containers and run tests
-done
+  echo > server/${lang}/.env
+  sample-ci/configure_docker_compose . "$lang" ../../client \
+                              target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
-sample=per-seat-subscriptions
-for lang in $(cat .cli.json | server_langs_in_sample "$sample")
-do
-  ci/configure_docker_compose "$sample" "$lang" ../../client \
-                              target/subscriptions-with-per-seat-pricing-1.0.0-SNAPSHOT-jar-with-dependencies.jar
-
-  echo > ${sample}/server/${lang}/.env
-  ci/run_tests spec/per_seat_server_dummy_spec.rb # spec/per_seat_server_spec.rb will fail on python, see fail_per_seat_python.sh
-done
-
-sample=usage-based-subscriptions
-rm -rf ${sample}/server/dotnet/ReportUsage # causes "Program.cs(14,28): error CS0017: Program has more than one entry point defined."
-for lang in $(cat .cli.json | server_langs_in_sample "$sample")
-do
-  ci/configure_docker_compose "$sample" "$lang" ../../client \
-                              target/subscriptions-with-metered-usage-1.0.0-SNAPSHOT-jar-with-dependencies.jar
-
-  echo > ${sample}/server/${lang}/.env
-  ci/run_tests spec/usage_based_server_spec.rb
+  docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
 done
 
 docker-compose stop
