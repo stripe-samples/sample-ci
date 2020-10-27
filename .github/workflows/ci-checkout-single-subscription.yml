@@ -49,7 +49,10 @@ jobs:
             sample-ci/configure_docker_compose . "$lang" ../../client \
                                                target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
-            docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
+            docker-compose exec -T runner bundle exec rspec spec/server_spec.rb || true
+            status=$?
+            docker-compose logs web
+            exit $status
           done
         env:
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.TEST_STRIPE_PUBLISHABLE_KEY }}
