@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: 'stripe-samples/sample-ci'
+          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
           path: 'sample-ci'
           ref: 'ci'
-          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
 
       - name: Install gettext for envsubst
         run: |
@@ -29,11 +29,9 @@ jobs:
 
       - name: Run tests
         run: |
-          source sample-ci/functions.sh
+          source sample-ci/helpers.sh
 
-          cp -p sample-ci/docker/docker-compose.base.yml docker-compose.yml
-          touch .env;
-          export SAMPLE=NA SERVER_LANG=NA STATIC_DIR=NA STRIPE_WEBHOOK_SECRET=NA
+          install_docker_compose_settings
           export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)
           cat <<EOF >> .env
           BASIC=${BASIC}
@@ -43,10 +41,10 @@ jobs:
           sample=fixed-price-subscriptions
           for lang in $(cat .cli.json | server_langs_for_integration $sample)
           do
-            echo > ${sample}/server/${lang}/.env
-            sample-ci/configure_docker_compose "$sample" "$lang" ../../client/vanillajs \
-                                                target/subscriptions-with-fixed-price-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            configure_docker_compose_for_integration "$sample" "$lang" ../../client/vanillajs \
+                                                     target/subscriptions-with-fixed-price-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
+            docker-compose up -d && wait_web_server
             docker-compose exec -T runner bundle exec rspec spec/fixed_price_server_spec.rb
           done
 
@@ -54,10 +52,10 @@ jobs:
           sample=per-seat-subscriptions
           for lang in $(cat .cli.json | server_langs_for_integration $sample)
           do
-            echo > ${sample}/server/${lang}/.env
-            sample-ci/configure_docker_compose "$sample" "$lang" ../../client \
-                                                target/subscriptions-with-per-seat-pricing-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            configure_docker_compose_for_integration "$sample" "$lang" ../../client \
+                                                     target/subscriptions-with-per-seat-pricing-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
+            docker-compose up -d && wait_web_server
             docker-compose exec -T runner bundle exec rspec spec/per_seat_server_dummy_spec.rb
           done
 
@@ -65,10 +63,10 @@ jobs:
           rm -rf ${sample}/server/dotnet/ReportUsage # causes "Program.cs(14,28): error CS0017: Program has more than one entry point defined."
           for lang in $(cat .cli.json | server_langs_for_integration $sample)
           do
-            echo > ${sample}/server/${lang}/.env
-            sample-ci/configure_docker_compose "$sample" "$lang" ../../client \
-                                        target/subscriptions-with-metered-usage-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            configure_docker_compose_for_integration "$sample" "$lang" ../../client \
+                                                     target/subscriptions-with-metered-usage-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
+            docker-compose up -d && wait_web_server
             docker-compose exec -T runner bundle exec rspec spec/usage_based_server_spec.rb
           done
         env:

@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: 'stripe-samples/sample-ci'
+          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
           path: 'sample-ci'
           ref: 'ci'
-          # token: '${{ secrets.GH_PERSONAL_ACSESS_TOKEN }}'
 
       - name: Install gettext for envsubst
         run: |
@@ -29,11 +29,9 @@ jobs:
 
       - name: Run tests
         run: |
-          source sample-ci/functions.sh
+          source sample-ci/helpers.sh
 
-          cp -p sample-ci/docker/docker-compose.base.yml docker-compose.yml
-          touch .env;
-          export SAMPLE=NA SERVER_LANG=NA STATIC_DIR=NA STRIPE_WEBHOOK_SECRET=NA
+          install_docker_compose_settings
           export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)
           cat <<EOF >> .env
           DOMAIN=http://web:4242
@@ -45,10 +43,10 @@ jobs:
           do
             [ "$lang" = "php" ] && continue
 
-            echo > server/${lang}/.env
-            sample-ci/configure_docker_compose . "$lang" ../../client \
-                                               target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+            configure_docker_compose_for_integration . "$lang" ../../client \
+                                                     target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
+            docker-compose up -d && wait_web_server
             docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
           done
         env:
