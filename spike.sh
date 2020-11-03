@@ -1,32 +1,58 @@
 #!/bin/bash -xe
 
-git clone https://github.com/hibariya/checkout-single-subscription.git
-cd checkout-single-subscription
-git checkout ci
+rm -rf accept-a-card-payment
+git clone https://github.com/hibariya/accept-a-card-payment.git
+cd accept-a-card-payment
+git checkout tmp
 
 # git clone https://github.com/stripe-samples/sample-ci.git
-mkdir sample-ci; cp -pr ../{configure_docker_compose,docker,functions.sh} sample-ci/
+mkdir sample-ci; cp -pr ../{docker,.rspec,spec,Gemfile,helpers.sh} sample-ci/
 
-source sample-ci/functions.sh
+source sample-ci/helpers.sh
 
-cp -p sample-ci/docker/docker-compose.base.yml docker-compose.yml
-touch .env;
-export SAMPLE=NA SERVER_LANG=NA STATIC_DIR=NA
+install_dummy_tests
+install_docker_compose_settings
 export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)
 cat <<EOF >> .env
-DOMAIN=http://web:4242
-BASIC_PRICE_ID=${BASIC}
-PRO_PRICE_ID=${PREMIUM}
 EOF
 
-for lang in $(cat .cli.json | server_langs_for_integration main)
+for lang in $(cat .cli.json | server_langs_for_integration decline-on-card-authentication)
 do
   [ "$lang" = "php" ] && continue
+  [ "$lang" = "node-typescript" ] && continue
 
-  echo > server/${lang}/.env
-  sample-ci/configure_docker_compose . "$lang" ../../client \
-                              target/single-subscription-checkout-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+  configure_docker_compose_for_integration decline-on-card-authentication "$lang" ../../client/web \
+                                            target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 
+  docker-compose up -d && wait_web_server
+  docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
+done
+
+for lang in $(cat .cli.json | server_langs_for_integration using-webhooks)
+do
+  [ "$lang" = "php" ] && continue
+  [ "$lang" = "node-typescript" ] && continue
+
+  configure_docker_compose_for_integration using-webhooks "$lang" ../../client/web \
+                                            target/collecting-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+
+  docker-compose up -d && wait_web_server
+  if [ "$lang" = "java" ]; then
+    docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
+  else
+    docker-compose exec -T -e SERVER_ROOT_PATH=/checkout runner bundle exec rspec spec/server_spec.rb
+  fi
+done
+
+for lang in $(cat .cli.json | server_langs_for_integration without-webhooks)
+do
+  [ "$lang" = "php" ] && continue
+  [ "$lang" = "node-typescript" ] && continue
+
+  configure_docker_compose_for_integration without-webhooks "$lang" ../../client/web \
+                                            target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
+
+  docker-compose up -d && wait_web_server
   docker-compose exec -T runner bundle exec rspec spec/server_spec.rb
 done
 

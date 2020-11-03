@@ -42,3 +42,9 @@ server_langs_for_integration() {
   integration=${1:-main}
   jq -r ".integrations[] | select(.name==\"${integration}\") | .servers | .[]"
 }
+
+install_dummy_tests() {
+  cp -pr sample-ci/spec .
+  cp -p sample-ci/.rspec .
+  cp -p sample-ci/Gemfile .
+}
