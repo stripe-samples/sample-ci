@@ -7,9 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          # repository: 'stripe-samples/accept-a-card-payment'
-          repository: 'hibariya/accept-a-card-payment'
-          ref: 'tmp'
+          repository: 'stripe-samples/accept-a-card-payment'
 
       - uses: actions/checkout@v2
         with:
