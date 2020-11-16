@@ -2,8 +2,9 @@
 
 rm -rf accept-a-card-payment
 git clone https://github.com/hibariya/accept-a-card-payment.git
+# git clone https://github.com/stripe-samples/accept-a-card-payment.git
 cd accept-a-card-payment
-git checkout tmp
+git checkout node-typescript-new-api
 
 # git clone https://github.com/stripe-samples/sample-ci.git
 mkdir sample-ci; cp -pr ../{docker,.rspec,spec,Gemfile,helpers.sh} sample-ci/
@@ -19,7 +20,6 @@ EOF
 for lang in $(cat .cli.json | server_langs_for_integration decline-on-card-authentication)
 do
   [ "$lang" = "php" ] && continue
-  [ "$lang" = "node-typescript" ] && continue
 
   configure_docker_compose_for_integration decline-on-card-authentication "$lang" ../../client/web \
                                             target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
@@ -31,7 +31,6 @@ done
 for lang in $(cat .cli.json | server_langs_for_integration using-webhooks)
 do
   [ "$lang" = "php" ] && continue
-  [ "$lang" = "node-typescript" ] && continue
 
   configure_docker_compose_for_integration using-webhooks "$lang" ../../client/web \
                                             target/collecting-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
@@ -47,7 +46,6 @@ done
 for lang in $(cat .cli.json | server_langs_for_integration without-webhooks)
 do
   [ "$lang" = "php" ] && continue
-  [ "$lang" = "node-typescript" ] && continue
 
   configure_docker_compose_for_integration without-webhooks "$lang" ../../client/web \
                                             target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar

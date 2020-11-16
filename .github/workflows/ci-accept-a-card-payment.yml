@@ -7,7 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'stripe-samples/accept-a-card-payment'
+          repository: 'hibariya/accept-a-card-payment'
+          ref: 'node-typescript-new-api'
 
       - uses: actions/checkout@v2
         with:
@@ -36,7 +37,6 @@ jobs:
           for lang in $(cat .cli.json | server_langs_for_integration decline-on-card-authentication)
           do
             [ "$lang" = "php" ] && continue
-            [ "$lang" = "node-typescript" ] && continue
 
             configure_docker_compose_for_integration decline-on-card-authentication "$lang" ../../client/web \
                                                       target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
@@ -48,7 +48,6 @@ jobs:
           for lang in $(cat .cli.json | server_langs_for_integration using-webhooks)
           do
             [ "$lang" = "php" ] && continue
-            [ "$lang" = "node-typescript" ] && continue
 
             configure_docker_compose_for_integration using-webhooks "$lang" ../../client/web \
                                                       target/collecting-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
@@ -64,7 +63,6 @@ jobs:
           for lang in $(cat .cli.json | server_langs_for_integration without-webhooks)
           do
             [ "$lang" = "php" ] && continue
-            [ "$lang" = "node-typescript" ] && continue
 
             configure_docker_compose_for_integration without-webhooks "$lang" ../../client/web \
                                                       target/accept-a-card-payment-1.0.0-SNAPSHOT-jar-with-dependencies.jar
