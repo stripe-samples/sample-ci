@@ -1,0 +1,3 @@
+services:
+  web:
+    command: ['java', '-cp', $SERVER_JAR_FILE, 'com.stripe.sample.Server']
