@@ -1,8 +1,0 @@
-services:
-  web:
-    volumes:
-      - ./${SAMPLE}:/work
-
-  runner:
-    volumes:
-      - .:/work
