@@ -1,0 +1,13 @@
+services:
+  runner:
+    volumes:
+      - .:/work
+      - gem:/usr/local/bundle
+
+  web:
+    volumes:
+      - .:/work
+      - gem:/usr/local/bundle
+
+volumes:
+  gem:

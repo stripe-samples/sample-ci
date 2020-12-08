@@ -1,3 +1,0 @@
-services:
-  web:
-    command: ['php', '-S', '0.0.0.0:4242', 'index.php']

@@ -6,35 +6,37 @@ retrieve_webhook_secret() {
 install_docker_compose_settings() {
   touch .env;
 
-  (
-    export SAMPLE=NA SERVER_LANG=NA STATIC_DIR=NA STRIPE_WEBHOOK_SECRET=NA
-    variables='${SAMPLE}${SERVER_LANG}${STATIC_DIR}${STRIPE_WEBHOOK_SECRET}'
-    cat sample-ci/docker/docker-compose.base.yml | envsubst "$variables" > docker-compose.yml
-  )
+  install_docker_compose_settings_for_integration "NA" "NA" "NA"
+
+  docker-compose run --entrypoint=/bin/sh runner -c true
+  docker cp . $(docker-compose ps -qa runner | head -1):/work/
 }
 
 configure_docker_compose_for_integration() {
-  install_docker_compose_settings_for_integration "$1" "$2" "$3" "$4"
+  [[ "$1" = "main" ]] && sample="." || sample="$1"
+  server_type=${2}
+  static_dir=${3}
 
-  echo > ${1}/server/${2}/.env
+  install_docker_compose_settings_for_integration "$sample" "$server_type" "$static_dir"
+
   docker-compose stop web || true
-  time docker-compose build web
+  docker-compose build web
+  docker cp .env $(docker-compose ps -qa runner | head -1):/work/${sample}/server/${server_type}/ || true
 }
 
 install_docker_compose_settings_for_integration() {
   (
     export SAMPLE=${1}
-    export SERVER_LANG=${2}
+    export SERVER_TYPE=${2}
     export STATIC_DIR=${3}
 
-    variables='${SAMPLE}${SERVER_LANG}${STATIC_DIR}${STRIPE_WEBHOOK_SECRET}'
-    cat sample-ci/docker/docker-compose.base.yml | envsubst "$variables" > docker-compose.yml
-    cat sample-ci/docker/${SERVER_LANG}/docker-compose.web.yml | envsubst "$variables" > docker-compose.override.yml
+    variables='${SAMPLE}${SERVER_TYPE}${STATIC_DIR}'
+    cat sample-ci/docker/docker-compose.yml | envsubst "$variables" > docker-compose.yml
   )
 }
 
 wait_web_server() {
-  time docker-compose exec -T runner bash -c 'curl -I --retry 12 --retry-delay 3 --retry-connrefused $SERVER_URL'
+  docker-compose exec -T runner bash -c 'curl -I --retry 12 --retry-delay 3 --retry-connrefused $SERVER_URL'
 }
 
 server_langs_for_integration() {

@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+source sample-ci/helpers.sh
+
+sample="$1"
+server_type="$2"
+static_dir="$3"
+
+configure_docker_compose_for_integration "$sample" "$server_type" "$static_dir"
+cp -p sample-ci/docker/docker-compose.dev.yml docker-compose.override.yml
+touch ${sample}/server/${server_type}/.env
+
+echo "export STRIPE_WEBHOOK_SECRET=$(retrieve_webhook_secret)"
