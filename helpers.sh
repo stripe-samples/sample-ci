@@ -26,9 +26,8 @@ install_docker_compose_settings_for_integration() {
     export SAMPLE=${1}
     export SERVER_LANG=${2}
     export STATIC_DIR=${3}
-    export SERVER_JAR_FILE=${4}
 
-    variables='${SAMPLE}${SERVER_LANG}${STATIC_DIR}${SERVER_JAR_FILE}${STRIPE_WEBHOOK_SECRET}'
+    variables='${SAMPLE}${SERVER_LANG}${STATIC_DIR}${STRIPE_WEBHOOK_SECRET}'
     cat sample-ci/docker/docker-compose.base.yml | envsubst "$variables" > docker-compose.yml
     cat sample-ci/docker/${SERVER_LANG}/docker-compose.web.yml | envsubst "$variables" > docker-compose.override.yml
   )
