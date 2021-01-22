@@ -14,7 +14,7 @@ services:
   stripe:
     image: stripe/stripe-cli:v1.5.3
     entrypoint: ['/bin/ash']
-    command: ['-c', '/bin/stripe --api-key=$STRIPE_SECRET_KEY listen --forward-to http://web:4242/stripe-webhook']
+    command: ['-c', '/bin/stripe --api-key=$STRIPE_SECRET_KEY listen --forward-to http://web:4242/webhook']
     env_file: .env
     environment:
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
