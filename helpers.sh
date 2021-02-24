@@ -47,3 +47,27 @@ install_dummy_tests() {
   cp -p sample-ci/.rspec .
   cp -p sample-ci/Gemfile .
 }
+
+setup_dependencies() {
+  __sudo apt update
+  __sudo apt install gettext-base
+
+  __sudo curl -o /usr/bin/jq -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  __sudo chmod +x /usr/bin/jq
+
+  if [ -n "$ACT" ]; then
+    # https://docs.docker.com/engine/install/debian/
+    # https://docs.docker.com/compose/install/
+    curl -fsSL https://get.docker.com | __sudo sh -
+    __sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    __sudo chmod +x /usr/local/bin/docker-compose
+  fi
+}
+
+__sudo() {
+  if [ -x "$(which sudo)" ]; then
+    sudo "$@"
+  else
+    "$@"
+  fi
+}
