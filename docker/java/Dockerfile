@@ -1,4 +1,4 @@
-FROM maven:3.6
+FROM maven:3.6-openjdk-15
 
 ARG sample
 
