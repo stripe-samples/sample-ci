@@ -11,6 +11,7 @@ services:
       - BUNDLE_JOBS=5
     volumes:
       - work:/work
+      - gem:/usr/local/bundle
 
   stripe:
     image: stripe/stripe-cli:v1.5.3
@@ -36,6 +37,8 @@ services:
       - STATIC_DIR=${STATIC_DIR}
     volumes:
       - work:/work
+      - gem:/usr/local/bundle
 
 volumes:
   work:
+  gem:
