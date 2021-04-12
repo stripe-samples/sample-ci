@@ -3,7 +3,7 @@
 export FLASK_APP=server.py FLASK_ENV=${FLASK_ENV:-development}
 
 if [[ "$#" -eq "0" ]]; then
-  pip install -r requirements.txt -q
+  pip install -r requirements.txt
   exec python3 -m flask run --port=4242 --host=0.0.0.0
 else
   exec "$@"
