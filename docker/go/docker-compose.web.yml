@@ -1,3 +1,0 @@
-services:
-  web:
-    command: ['go', 'run', 'server.go']

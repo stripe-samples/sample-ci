@@ -1,3 +1,0 @@
-services:
-  web:
-    command: ['python3', '-m', 'flask', 'run', '--port=4242', '--host=0.0.0.0']
