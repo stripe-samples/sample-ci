@@ -10,6 +10,7 @@ install_docker_compose_settings() {
 
   docker-compose run --entrypoint=/bin/sh runner -c true
   docker cp . $(docker-compose ps -qa runner | head -1):/work/
+  docker-compose run --rm runner bundle install -j4
 }
 
 configure_docker_compose_for_integration() {
