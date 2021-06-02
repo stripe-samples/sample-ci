@@ -10,6 +10,7 @@ install_docker_compose_settings() {
 
   docker-compose run --entrypoint=/bin/sh runner -c true
   docker cp . $(docker-compose ps -qa runner | head -1):/work/
+  docker-compose run --rm runner bundle install -j4
 }
 
 configure_docker_compose_for_integration() {
@@ -34,14 +35,15 @@ install_docker_compose_settings_for_integration() {
     export SAMPLE=${1}
     export SERVER_TYPE=${2}
     export STATIC_DIR=${3}
+    export CLIENT_TYPE=$(basename "$STATIC_DIR")
 
-    variables='${SAMPLE}${SERVER_TYPE}${STATIC_DIR}'
+    variables='${SAMPLE}${SERVER_TYPE}${STATIC_DIR}${CLIENT_TYPE}'
     cat sample-ci/docker/docker-compose.yml | envsubst "$variables" > docker-compose.yml
   )
 }
 
 wait_web_server() {
-  docker-compose exec -T runner bash -c 'curl -I --retry 15 --retry-delay 3 --retry-connrefused $SERVER_URL'
+  docker-compose exec -T runner bash -c 'curl -I --retry 30 --retry-delay 3 --retry-connrefused $SERVER_URL'
 }
 
 server_langs_for_integration() {
