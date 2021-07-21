@@ -35,10 +35,17 @@ install_docker_compose_settings_for_integration() {
     export SAMPLE=${1}
     export SERVER_TYPE=${2}
     export STATIC_DIR=${3}
+    export SERVER_IMAGE=${4}
     export CLIENT_TYPE=$(basename "$STATIC_DIR")
 
-    variables='${SAMPLE}${SERVER_TYPE}${STATIC_DIR}${CLIENT_TYPE}'
-    cat sample-ci/docker/docker-compose.yml | envsubst "$variables" > docker-compose.yml
+    if [[ -z "${SERVER_IMAGE}" ]]; then
+      compose_file=docker-compose.yml
+    else
+      compose_file=docker-compose-v2.yml
+    fi
+
+    variables='${SAMPLE}${SERVER_TYPE}${STATIC_DIR}${CLIENT_TYPE}${SERVER_IMAGE}'
+    cat sample-ci/docker/${compose_file} | envsubst "$variables" > docker-compose.yml
   )
 }
 
