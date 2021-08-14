@@ -17,10 +17,11 @@ configure_docker_compose_for_integration() {
   [[ "$1" = "main" ]] && sample="." || sample="$1"
   server_type=${2}
   static_dir=${3}
+  server_image=${4}
 
-  echo "### Configuring the settings for the integration; sample: ${sample}, server_type: ${server_type}, static_dir: ${static_dir}"
+  echo "### Configuring the settings for the integration; sample: ${sample}, server_type: ${server_type}, static_dir: ${static_dir}, server_image: ${server_image}"
 
-  install_docker_compose_settings_for_integration "$sample" "$server_type" "$static_dir"
+  install_docker_compose_settings_for_integration "$sample" "$server_type" "$static_dir" "$server_image"
 
   docker-compose stop web || true
   docker-compose build web
