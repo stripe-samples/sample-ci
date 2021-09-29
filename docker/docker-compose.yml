@@ -1,6 +1,6 @@
 services:
   runner:
-    image: ruby:2.7.1
+    image: ruby:3.0
     working_dir: /work
     init: true
     entrypoint: ['/work/sample-ci/docker/runner/entrypoint.sh']

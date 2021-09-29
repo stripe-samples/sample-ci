@@ -38,7 +38,6 @@ services:
       - STATIC_DIR=${STATIC_DIR}
     volumes:
       - work:/work
-      - gem:/usr/local/bundle
 
   frontend:
     profiles: ['frontend']
