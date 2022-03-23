@@ -51,7 +51,7 @@ install_docker_compose_settings_for_integration() {
 }
 
 wait_web_server() {
-  docker-compose exec -T runner bash -c 'curl -I --retry 30 --retry-delay 3 --retry-connrefused $SERVER_URL'
+  docker-compose exec -T -e TEST_URL="$1" runner bash -c 'curl -I --retry 30 --retry-delay 3 --retry-connrefused ${TEST_URL:-$SERVER_URL}'
 }
 
 server_langs_for_integration() {

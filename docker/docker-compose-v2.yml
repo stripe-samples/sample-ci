@@ -52,6 +52,7 @@ services:
     environment:
       - HOST=0.0.0.0
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - SERVER_URL=${SERVER_URL:-http://web:4242}
     volumes:
       - work:/work
 
