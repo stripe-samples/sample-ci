@@ -10,3 +10,7 @@ services:
   frontend:
     volumes:
       - .:/work
+
+  playwright:
+    volumes:
+      - .:/work

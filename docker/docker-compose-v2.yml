@@ -63,6 +63,13 @@ services:
     environment:
       - VNC_NO_PASSWORD='1'
 
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.27.0-focal
+    command: ['tail', '-f', '/dev/null']
+    working_dir: /work/playwright
+    volumes:
+      - work:/work
+
 volumes:
   work:
   gem:
