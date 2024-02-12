@@ -41,9 +41,7 @@ services:
 
   frontend:
     profiles: ['frontend']
-    build:
-      context: .
-      dockerfile: sample-ci/docker/${CLIENT_TYPE}/Dockerfile
+    image: node:lts
     stdin_open: true
     working_dir: /work/${SAMPLE}/client/${CLIENT_TYPE}
     init: true
