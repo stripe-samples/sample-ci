@@ -56,8 +56,9 @@ services:
 
   selenium:
     profiles: ['e2e', 'frontend']
-    image: selenium/standalone-chrome-debug:3.141
-    ports: ['5900:5900', '4444:4444']
+    image: selenium/standalone-chrome:4.9
+    shm_size: "2gb"
+    ports: ['5900:5900', '7900:7900', '4444:4444']
     environment:
       - VNC_NO_PASSWORD='1'
 
