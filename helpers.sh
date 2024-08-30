@@ -28,7 +28,7 @@ configure_docker_compose_for_integration() {
 
   # NOTE: On the CI, this function call is the only chance to copy the env file that contains proper values;
   #       maybe we should re-write ci.yml on each sample repository and remove this.
-  docker cp .env $(docker-compose ps -qa runner | head -1):/work/${sample}/server/${server_type}/ || true
+  docker cp .env $(docker compose ps -qa runner | head -1):/work/${sample}/server/${server_type}/ || true
 }
 
 install_docker_compose_settings_for_integration() {
