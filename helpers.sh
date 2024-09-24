@@ -1,6 +1,6 @@
 retrieve_webhook_secret() {
-  docker compose pull stripe > /dev/null 2>&1
-  docker compose run -T --rm stripe -c '/bin/stripe listen --api-key $STRIPE_SECRET_KEY --print-secret'
+  docker compose -f docker-compose.yml pull stripe > /dev/null 2>&1
+  docker compose -f docker-compose.yml run -T --rm stripe -c '/bin/stripe listen --api-key $STRIPE_SECRET_KEY --print-secret'
 }
 
 install_docker_compose_settings() {
@@ -8,9 +8,9 @@ install_docker_compose_settings() {
 
   install_docker_compose_settings_for_integration "NA" "NA" "NA"
 
-  docker compose run --entrypoint=/bin/sh runner -c true
-  docker cp . $(docker compose ps -qa runner | head -1):/work/
-  docker compose run --rm runner bundle install -j4
+  docker compose -f docker-compose.yml run --entrypoint=/bin/sh runner -c true
+  docker cp . $(docker compose -f docker-compose.yml ps -qa runner | head -1):/work/
+  docker compose -f docker-compose.yml run --rm runner bundle install -j4
 }
 
 configure_docker_compose_for_integration() {
@@ -23,12 +23,12 @@ configure_docker_compose_for_integration() {
 
   install_docker_compose_settings_for_integration "$sample" "$server_type" "$static_dir" "$server_image"
 
-  docker compose stop web || true
-  docker compose build web
+  docker compose -f docker-compose.yml stop web || true
+  docker compose -f docker-compose.yml build web
 
   # NOTE: On the CI, this function call is the only chance to copy the env file that contains proper values;
   #       maybe we should re-write ci.yml on each sample repository and remove this.
-  docker cp .env $(docker compose ps -qa runner | head -1):/work/${sample}/server/${server_type}/ || true
+  docker cp .env $(docker compose -f docker-compose.yml ps -qa runner | head -1):/work/${sample}/server/${server_type}/ || true
 }
 
 install_docker_compose_settings_for_integration() {
@@ -51,7 +51,7 @@ install_docker_compose_settings_for_integration() {
 }
 
 wait_web_server() {
-  docker compose exec -T -e TEST_URL="$1" runner bash -c 'curl -I --retry 30 --retry-delay 3 --retry-connrefused ${TEST_URL:-$SERVER_URL}'
+  docker compose -f docker-compose.yml exec -T -e TEST_URL="$1" runner bash -c 'curl -I --retry 30 --retry-delay 3 --retry-connrefused ${TEST_URL:-$SERVER_URL}'
 }
 
 server_langs_for_integration() {
