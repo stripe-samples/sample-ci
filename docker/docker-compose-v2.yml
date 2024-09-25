@@ -15,7 +15,7 @@ services:
       - gem:/usr/local/bundle
 
   stripe:
-    image: stripe/stripe-cli:v1.5.3
+    image: stripe/stripe-cli:latest
     init: true
     entrypoint: ['/bin/ash']
     command: ['-c', '/bin/stripe --api-key=$STRIPE_SECRET_KEY listen --forward-to http://web:4242/webhook']
